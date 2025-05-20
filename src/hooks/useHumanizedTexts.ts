@@ -75,7 +75,6 @@ export const useHumanizedTexts = () => {
       if (error) throw error;
       
       setTexts(prevTexts => [data as HumanizedText, ...prevTexts]);
-      toast.success("Text humanized and saved successfully!");
       return data;
     } catch (error: any) {
       toast.error(`Error saving humanized text: ${error.message}`);

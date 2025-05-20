@@ -1,37 +1,93 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { CheckIcon, ArrowRightIcon } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUserData } from "@/hooks/useUserData";
+import { useHumanizedTexts } from "@/hooks/useHumanizedTexts";
+import { toast } from "sonner";
+import { copyToClipboard } from "@/utils/clipboard";
 
 const Index = () => {
   const [inputText, setInputText] = useState("");
   const [outputText, setOutputText] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeTab, setActiveTab] = useState("humanize");
-  const { toast } = useToast();
+  const { user } = useAuth();
+  const { availableCredits } = useUserData();
+  const { saveHumanizedText } = useHumanizedTexts();
+  const navigate = useNavigate();
+
+  // Calculate credits needed based on input text
+  const calculateCreditsNeeded = (text: string): number => {
+    if (!text) return 0;
+    // 2 credits per 100 characters (rounded up)
+    return Math.ceil(text.length / 100) * 2;
+  };
 
   const handleSubmit = async () => {
     if (!inputText.trim()) return;
 
+    const creditsNeeded = calculateCreditsNeeded(inputText);
+
+    // Check if user is logged in
+    if (user) {
+      // Check if user has enough credits
+      if (availableCredits < creditsNeeded) {
+        toast.error(`Not enough credits! You need ${creditsNeeded} credits but have only ${availableCredits} available.`, {
+          description: "Please upgrade your plan to get more credits.",
+          action: {
+            label: "Upgrade",
+            onClick: () => navigate("/pricing")
+          }
+        });
+        return;
+      }
+    }
+
     setIsProcessing(true);
     
-    // Simulate API call with timeout
-    setTimeout(() => {
-      // Mock the humanized output
-      setOutputText(`${inputText} 
+    try {
+      // Simulate AI humanization with timeout
+      setTimeout(async () => {
+        // Mock the humanized output
+        const humanizedText = `${inputText} 
 
 This is the humanized version of your text. In a production environment, this would be processed by our AI humanization engine to make it sound more natural and human-written, while maintaining the original meaning.
 
-The humanized text would have varied sentence structures, natural language patterns, and would effectively bypass AI detection tools.`);
-      
+The humanized text would have varied sentence structures, natural language patterns, and would effectively bypass AI detection tools.`;
+        
+        setOutputText(humanizedText);
+        
+        // Save humanized text to Supabase if user is logged in
+        if (user) {
+          const title = `Project ${new Date().toLocaleDateString()}`;
+          await saveHumanizedText(inputText, humanizedText, creditsNeeded, title);
+          toast.success(`Project saved! Used ${creditsNeeded} credits.`);
+        }
+        
+        setIsProcessing(false);
+      }, 1500);
+    } catch (error: any) {
+      console.error("Error during humanization:", error);
+      toast.error("Error during humanization process", {
+        description: error.message
+      });
       setIsProcessing(false);
-    }, 1500);
+    }
+  };
+
+  const handleCopy = () => {
+    if (outputText) {
+      copyToClipboard(outputText);
+      toast.success("Copied to clipboard!");
+    }
   };
 
   const features = [
@@ -108,6 +164,14 @@ The humanized text would have varied sentence structures, natural language patte
                 <span className="text-gradient">AI Humanizer</span> Tool
               </h2>
 
+              {user && (
+                <div className="mb-6 text-center">
+                  <p className="text-humanizer-purple font-medium">
+                    Available Credits: <span className="font-bold">{availableCredits}</span>
+                  </p>
+                </div>
+              )}
+
               <Tabs defaultValue="humanize" className="w-full" onValueChange={setActiveTab}>
                 <TabsList className="grid w-full grid-cols-2 mb-8">
                   <TabsTrigger value="humanize">Humanize Text</TabsTrigger>
@@ -122,6 +186,11 @@ The humanized text would have varied sentence structures, natural language patte
                           <div className="flex flex-col h-full">
                             <div className="mb-3">
                               <p className="font-medium text-gray-700">Input AI Text:</p>
+                              {user && inputText && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Estimated cost: {calculateCreditsNeeded(inputText)} credits
+                                </p>
+                              )}
                             </div>
                             <Textarea 
                               placeholder="Paste your AI-generated text here..." 
@@ -139,6 +208,9 @@ The humanized text would have varied sentence structures, natural language patte
                                 disabled={isProcessing || !inputText.trim()}
                               >
                                 {isProcessing ? "Humanizing..." : "Humanize"}
+                                {!user && !isProcessing && (
+                                  <span className="ml-2 text-xs">(Free Trial)</span>
+                                )}
                               </Button>
                             </div>
                           </div>
@@ -201,13 +273,7 @@ The humanized text would have varied sentence structures, natural language patte
                               variant="outline" 
                               className="mr-2"
                               disabled={!outputText}
-                              onClick={() => {
-                                navigator.clipboard.writeText(outputText);
-                                toast({
-                                  title: "Copied!",
-                                  description: "Text has been copied to clipboard",
-                                });
-                              }}
+                              onClick={handleCopy}
                             >
                               Copy
                             </Button>
@@ -225,6 +291,17 @@ The humanized text would have varied sentence structures, natural language patte
                   </div>
                 </div>
               </Tabs>
+
+              {!user && (
+                <div className="mt-8 p-4 bg-humanizer-light-purple/20 rounded-lg text-center">
+                  <p className="mb-2">Sign in to save your humanized text and access more features.</p>
+                  <Link to="/login">
+                    <Button className="bg-gradient-purple-blue mt-2">
+                      Sign In
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </section>

@@ -1,18 +1,16 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ArrowRightIcon, ChevronRightIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserData } from "@/hooks/useUserData";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useHumanizedTexts } from "@/hooks/useHumanizedTexts";
+import ProjectsList from "@/components/ProjectsList";
 import { toast } from "sonner";
 
 const Dashboard = () => {
@@ -20,50 +18,7 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("projects");
   const { signOut, user } = useAuth();
   const { profile, credits, subscription, availableCredits, loading: userDataLoading } = useUserData();
-
-  // Fetch humanized texts for the current user
-  const { data: humanizedTexts = [], isLoading: textsLoading } = useQuery({
-    queryKey: ['humanizedTexts', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      
-      const { data, error } = await supabase
-        .from('humanized_texts')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        toast.error(`Error fetching projects: ${error.message}`);
-        throw error;
-      }
-      
-      return data || [];
-    },
-    enabled: !!user,
-  });
-
-  // Fetch payment history
-  const { data: paymentHistory = [], isLoading: paymentsLoading } = useQuery({
-    queryKey: ['paymentHistory', user?.id],
-    queryFn: async () => {
-      // This would be replaced with real payment history from an API
-      // For now, we'll return mock data based on the subscription type
-      if (!subscription) return [];
-      
-      return [
-        {
-          id: "INV-001",
-          date: new Date().toISOString().split('T')[0],
-          amount: subscription.plan_type === 'standard' ? "$19.00" : 
-                  subscription.plan_type === 'premium' ? "$49.00" : "$0.00",
-          status: "Paid",
-          plan: `${subscription.plan_type.charAt(0).toUpperCase() + subscription.plan_type.slice(1)} (Monthly)`
-        }
-      ];
-    },
-    enabled: !!subscription,
-  });
+  const { texts: humanizedTexts, loading: textsLoading } = useHumanizedTexts();
 
   // Calculate credits percentage
   const creditsPercentage = credits ? (credits.used_credits / credits.total_credits) * 100 : 0;
@@ -77,14 +32,6 @@ const Dashboard = () => {
     });
   };
 
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "numeric"
-    });
-  };
-
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -94,7 +41,7 @@ const Dashboard = () => {
     }
   };
 
-  if (userDataLoading || textsLoading || paymentsLoading) {
+  if (userDataLoading || textsLoading) {
     return (
       <div className="flex flex-col min-h-screen">
         <Header />
@@ -108,6 +55,18 @@ const Dashboard = () => {
       </div>
     );
   }
+
+  // Fetch payment history (mock data based on subscription)
+  const paymentHistory = subscription ? [
+    {
+      id: "INV-001",
+      date: new Date().toISOString().split('T')[0],
+      amount: subscription.plan_type === 'standard' ? "$19.00" : 
+              subscription.plan_type === 'premium' ? "$49.00" : "$0.00",
+      status: "Paid",
+      plan: `${subscription.plan_type.charAt(0).toUpperCase() + subscription.plan_type.slice(1)} (Monthly)`
+    }
+  ] : [];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -204,71 +163,7 @@ const Dashboard = () => {
             </TabsList>
 
             <TabsContent value="projects">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Your Projects</CardTitle>
-                  <CardDescription>
-                    View and manage all your AI humanizer projects.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Characters</TableHead>
-                          <TableHead>Credits</TableHead>
-                          <TableHead className="text-right">Action</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {humanizedTexts.length > 0 ? (
-                          humanizedTexts.map((project) => (
-                            <TableRow key={project.id}>
-                              <TableCell className="font-medium">{project.title}</TableCell>
-                              <TableCell>
-                                {formatDate(project.created_at)}
-                                <div className="text-xs text-gray-500">
-                                  {formatTime(project.created_at)}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                  Completed
-                                </div>
-                              </TableCell>
-                              <TableCell>{project.original_text.length.toLocaleString()}</TableCell>
-                              <TableCell>{project.credits_used}</TableCell>
-                              <TableCell className="text-right">
-                                <Button variant="ghost" size="sm">
-                                  View
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        ) : (
-                          <TableRow>
-                            <TableCell colSpan={6} className="text-center py-4 text-gray-500">
-                              You haven't created any projects yet.
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-                {humanizedTexts.length > 0 && (
-                  <CardFooter className="flex justify-between">
-                    <p className="text-sm text-gray-500">
-                      Showing {humanizedTexts.length} project{humanizedTexts.length !== 1 ? 's' : ''}
-                    </p>
-                    <Button variant="outline">View All Projects</Button>
-                  </CardFooter>
-                )}
-              </Card>
+              <ProjectsList projects={humanizedTexts} />
             </TabsContent>
 
             <TabsContent value="billing">
