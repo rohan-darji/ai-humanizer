@@ -10,7 +10,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserData } from "@/hooks/useUserData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import PaymentProcessing from "@/components/PaymentProcessing";
+import PaymentForm from "@/components/PaymentForm";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 const PricingCard = ({ 
   plan, 
@@ -71,7 +72,7 @@ const Pricing = () => {
   const { subscription } = useUserData();
   
   const [billingCycle, setBillingCycle] = useState("monthly");
-  const [processingPayment, setProcessingPayment] = useState(false);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("");
   
   const pricingPlans = {
@@ -207,14 +208,14 @@ const Pricing = () => {
       return;
     }
 
-    // Otherwise show payment dialog
+    // Otherwise show payment form
     setSelectedPlan(planType);
-    setProcessingPayment(true);
+    setShowPaymentForm(true);
   };
 
   const handleUpdatePlan = async (planType: string) => {
     try {
-      setProcessingPayment(false); // Close the payment dialog
+      setShowPaymentForm(false); // Close the payment form
       
       // Update or create the subscription in the database
       const { data: subscriptionData, error: subscriptionError } = await supabase
@@ -287,7 +288,7 @@ const Pricing = () => {
     } catch (error: any) {
       console.error('Error updating subscription:', error);
       toast.error(`Error updating subscription: ${error.message}`);
-      setProcessingPayment(false);
+      setShowPaymentForm(false);
     }
   };
 
@@ -295,6 +296,11 @@ const Pricing = () => {
     if (selectedPlan) {
       handleUpdatePlan(selectedPlan);
     }
+  };
+
+  const handlePaymentCancel = () => {
+    setShowPaymentForm(false);
+    setSelectedPlan("");
   };
 
   return (
@@ -395,13 +401,18 @@ const Pricing = () => {
       
       <Footer />
       
-      {/* Payment Processing Dialog */}
-      <PaymentProcessing 
-        open={processingPayment}
-        onClose={() => setProcessingPayment(false)}
-        planName={selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)}
-        onSuccess={handlePaymentSuccess}
-      />
+      {/* Payment Form Dialog */}
+      <Dialog open={showPaymentForm} onOpenChange={setShowPaymentForm}>
+        <DialogContent className="max-w-4xl">
+          <PaymentForm
+            planName={selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)}
+            amount={selectedPlan === 'standard' ? (billingCycle === 'yearly' ? 190 : 19) : (billingCycle === 'yearly' ? 490 : 49)}
+            billingCycle={billingCycle}
+            onSuccess={handlePaymentSuccess}
+            onCancel={handlePaymentCancel}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
