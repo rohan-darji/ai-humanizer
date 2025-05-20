@@ -1,12 +1,16 @@
-
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CheckIcon } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUserData } from "@/hooks/useUserData";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import PaymentProcessing from "@/components/PaymentProcessing";
 
 const PricingCard = ({ 
   plan, 
@@ -16,7 +20,10 @@ const PricingCard = ({
   features, 
   credits,
   popular = false,
-  buttonText = "Get Started" 
+  buttonText = "Get Started",
+  onSelectPlan,
+  currentPlan = "",
+  isCurrentPlan = false
 }) => (
   <Card className={`w-full ${popular ? 'border-humanizer-purple shadow-lg' : ''}`}>
     {popular && (
@@ -49,15 +56,23 @@ const PricingCard = ({
       <Button 
         className={popular ? "bg-gradient-purple-blue w-full" : "w-full"} 
         variant={popular ? "default" : "outline"}
+        onClick={() => onSelectPlan(plan.toLowerCase())}
+        disabled={isCurrentPlan}
       >
-        {buttonText}
+        {isCurrentPlan ? "Current Plan" : buttonText}
       </Button>
     </CardFooter>
   </Card>
 );
 
 const Pricing = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { subscription } = useUserData();
+  
   const [billingCycle, setBillingCycle] = useState("monthly");
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState("");
   
   const pricingPlans = {
     monthly: [
@@ -179,6 +194,73 @@ const Pricing = () => {
     }
   ];
 
+  const handleSelectPlan = (planType: string) => {
+    // If user is not logged in, redirect to login/signup
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    // If it's the free plan, update directly
+    if (planType === 'free') {
+      handleUpdatePlan(planType);
+      return;
+    }
+
+    // Otherwise show payment dialog
+    setSelectedPlan(planType);
+    setProcessingPayment(true);
+  };
+
+  const handleUpdatePlan = async (planType: string) => {
+    try {
+      // In a real app, you would integrate with a payment processor here
+      
+      // Update the subscription in the database
+      const { error } = await supabase
+        .from('subscriptions')
+        .update({ 
+          plan_type: planType,
+          updated_at: new Date().toISOString() 
+        })
+        .eq('user_id', user!.id);
+      
+      if (error) throw error;
+      
+      // Update credits based on plan
+      let totalCredits = 1000; // Default for free tier
+      
+      if (planType === 'standard') {
+        totalCredits = 5000;
+      } else if (planType === 'premium') {
+        totalCredits = 20000;
+      }
+      
+      const { error: creditsError } = await supabase
+        .from('credits')
+        .update({ 
+          total_credits: totalCredits,
+          updated_at: new Date().toISOString() 
+        })
+        .eq('user_id', user!.id);
+      
+      if (creditsError) throw creditsError;
+      
+      toast.success(`Successfully upgraded to ${planType} plan!`);
+      
+      // Redirect to dashboard after successful upgrade
+      setTimeout(() => navigate('/dashboard'), 1000);
+    } catch (error: any) {
+      toast.error(`Error updating subscription: ${error.message}`);
+    }
+  };
+
+  const handlePaymentSuccess = () => {
+    if (selectedPlan) {
+      handleUpdatePlan(selectedPlan);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -215,7 +297,13 @@ const Pricing = () => {
             <div className="max-w-6xl mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {pricingPlans[billingCycle].map((plan, index) => (
-                  <PricingCard key={index} {...plan} />
+                  <PricingCard 
+                    key={index} 
+                    {...plan} 
+                    onSelectPlan={handleSelectPlan}
+                    currentPlan={subscription?.plan_type || ''}
+                    isCurrentPlan={subscription?.plan_type === plan.plan.toLowerCase()}
+                  />
                 ))}
               </div>
             </div>
@@ -253,9 +341,9 @@ const Pricing = () => {
                 Sign up now and get your first 500 credits for free, no credit card required.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <Link to="/login" onClick={() => window.scrollTo(0, 0)}>
+                <Link to={user ? "/dashboard" : "/login"} onClick={() => window.scrollTo(0, 0)}>
                   <Button className="bg-white text-humanizer-purple hover:bg-gray-100 py-6 px-8 text-lg">
-                    Sign Up Free
+                    {user ? "Go to Dashboard" : "Sign Up Free"}
                   </Button>
                 </Link>
                 <Link to="/contact" onClick={() => window.scrollTo(0, 0)}>
@@ -270,6 +358,14 @@ const Pricing = () => {
       </main>
       
       <Footer />
+      
+      {/* Payment Processing Dialog */}
+      <PaymentProcessing 
+        open={processingPayment}
+        onClose={() => setProcessingPayment(false)}
+        planName={selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)}
+        onSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 };

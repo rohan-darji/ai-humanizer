@@ -9,74 +9,66 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ArrowRightIcon, ChevronRightIcon } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUserData } from "@/hooks/useUserData";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("projects");
+  const { signOut, user } = useAuth();
+  const { profile, credits, subscription, availableCredits, loading: userDataLoading } = useUserData();
 
-  // Mock user data
-  const userData = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    plan: "Standard",
-    creditsUsed: 1850,
-    totalCredits: 5000,
-    projects: [
-      { 
-        id: 1, 
-        name: "Blog Article Draft", 
-        lastEdited: "2023-05-10T12:30:00", 
-        status: "Completed",
-        characterCount: 3200,
-        creditsUsed: 32
-      },
-      { 
-        id: 2, 
-        name: "Marketing Email", 
-        lastEdited: "2023-05-15T14:45:00", 
-        status: "Completed",
-        characterCount: 1500,
-        creditsUsed: 15
-      },
-      { 
-        id: 3, 
-        name: "Product Description", 
-        lastEdited: "2023-05-18T09:20:00", 
-        status: "In Progress",
-        characterCount: 800,
-        creditsUsed: 8
-      },
-      { 
-        id: 4, 
-        name: "Social Media Post", 
-        lastEdited: "2023-05-20T16:10:00", 
-        status: "Completed",
-        characterCount: 280,
-        creditsUsed: 3
+  // Fetch humanized texts for the current user
+  const { data: humanizedTexts = [], isLoading: textsLoading } = useQuery({
+    queryKey: ['humanizedTexts', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data, error } = await supabase
+        .from('humanized_texts')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        toast.error(`Error fetching projects: ${error.message}`);
+        throw error;
       }
-    ],
-    paymentHistory: [
-      {
-        id: "INV-001",
-        date: "2023-05-01",
-        amount: "$19.00",
-        status: "Paid",
-        plan: "Standard (Monthly)"
-      },
-      {
-        id: "INV-002",
-        date: "2023-04-01",
-        amount: "$19.00",
-        status: "Paid",
-        plan: "Standard (Monthly)"
-      }
-    ]
-  };
+      
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  // Fetch payment history
+  const { data: paymentHistory = [], isLoading: paymentsLoading } = useQuery({
+    queryKey: ['paymentHistory', user?.id],
+    queryFn: async () => {
+      // This would be replaced with real payment history from an API
+      // For now, we'll return mock data based on the subscription type
+      if (!subscription) return [];
+      
+      return [
+        {
+          id: "INV-001",
+          date: new Date().toISOString().split('T')[0],
+          amount: subscription.plan_type === 'standard' ? "$19.00" : 
+                  subscription.plan_type === 'premium' ? "$49.00" : "$0.00",
+          status: "Paid",
+          plan: `${subscription.plan_type.charAt(0).toUpperCase() + subscription.plan_type.slice(1)} (Monthly)`
+        }
+      ];
+    },
+    enabled: !!subscription,
+  });
 
   // Calculate credits percentage
-  const creditsPercentage = (userData.creditsUsed / userData.totalCredits) * 100;
+  const creditsPercentage = credits ? (credits.used_credits / credits.total_credits) * 100 : 0;
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       year: "numeric",
@@ -85,13 +77,37 @@ const Dashboard = () => {
     });
   };
 
-  const formatTime = (dateString) => {
+  const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "numeric"
     });
   };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  if (userDataLoading || textsLoading || paymentsLoading) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-grow pt-24 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2">Loading your dashboard...</h2>
+            <p className="text-gray-500">Please wait while we fetch your data.</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -102,14 +118,17 @@ const Dashboard = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
             <div>
               <h1 className="text-3xl font-bold">Dashboard</h1>
-              <p className="text-gray-500">Manage your projects and account settings</p>
+              <p className="text-gray-500">Welcome back, {profile?.full_name || user?.email}</p>
             </div>
-            <div className="mt-4 md:mt-0">
+            <div className="mt-4 md:mt-0 flex space-x-2">
               <Link to="/">
                 <Button className="bg-gradient-purple-blue">
                   New Project <ArrowRightIcon className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
+              <Button variant="outline" onClick={handleSignOut}>
+                Sign Out
+              </Button>
             </div>
           </div>
 
@@ -123,8 +142,12 @@ const Dashboard = () => {
               <CardContent>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-2xl font-bold">{userData.plan}</p>
-                    <p className="text-sm text-gray-500">Monthly Subscription</p>
+                    <p className="text-2xl font-bold">
+                      {subscription?.plan_type.charAt(0).toUpperCase() + subscription?.plan_type.slice(1) || "Free"}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {subscription?.plan_type === 'free' ? 'Free Tier' : 'Monthly Subscription'}
+                    </p>
                   </div>
                   <Link to="/pricing">
                     <Button variant="outline" size="sm">
@@ -144,11 +167,11 @@ const Dashboard = () => {
               <CardContent>
                 <div className="space-y-2">
                   <p className="text-2xl font-bold">
-                    {userData.creditsUsed} / {userData.totalCredits}
+                    {credits?.used_credits || 0} / {credits?.total_credits || 0}
                   </p>
                   <Progress value={creditsPercentage} className="h-2 bg-gray-200" />
                   <p className="text-sm text-gray-500">
-                    {(userData.totalCredits - userData.creditsUsed).toLocaleString()} credits remaining
+                    {availableCredits.toLocaleString()} credits remaining
                   </p>
                 </div>
               </CardContent>
@@ -162,9 +185,11 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <p className="text-2xl font-bold">{userData.projects.length}</p>
+                  <p className="text-2xl font-bold">{humanizedTexts.length}</p>
                   <p className="text-sm text-gray-500">
-                    Last updated {formatDate(userData.projects[0].lastEdited)}
+                    {humanizedTexts.length > 0 
+                      ? `Last updated ${formatDate(humanizedTexts[0].updated_at)}`
+                      : 'No projects yet'}
                   </p>
                 </div>
               </CardContent>
@@ -200,43 +225,49 @@ const Dashboard = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {userData.projects.map((project) => (
-                          <TableRow key={project.id}>
-                            <TableCell className="font-medium">{project.name}</TableCell>
-                            <TableCell>
-                              {formatDate(project.lastEdited)}
-                              <div className="text-xs text-gray-500">
-                                {formatTime(project.lastEdited)}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                project.status === "Completed" 
-                                  ? "bg-green-100 text-green-800" 
-                                  : "bg-yellow-100 text-yellow-800"
-                              }`}>
-                                {project.status}
-                              </div>
-                            </TableCell>
-                            <TableCell>{project.characterCount.toLocaleString()}</TableCell>
-                            <TableCell>{project.creditsUsed}</TableCell>
-                            <TableCell className="text-right">
-                              <Button variant="ghost" size="sm">
-                                View
-                              </Button>
+                        {humanizedTexts.length > 0 ? (
+                          humanizedTexts.map((project) => (
+                            <TableRow key={project.id}>
+                              <TableCell className="font-medium">{project.title}</TableCell>
+                              <TableCell>
+                                {formatDate(project.created_at)}
+                                <div className="text-xs text-gray-500">
+                                  {formatTime(project.created_at)}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  Completed
+                                </div>
+                              </TableCell>
+                              <TableCell>{project.original_text.length.toLocaleString()}</TableCell>
+                              <TableCell>{project.credits_used}</TableCell>
+                              <TableCell className="text-right">
+                                <Button variant="ghost" size="sm">
+                                  View
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-center py-4 text-gray-500">
+                              You haven't created any projects yet.
                             </TableCell>
                           </TableRow>
-                        ))}
+                        )}
                       </TableBody>
                     </Table>
                   </div>
                 </CardContent>
-                <CardFooter className="flex justify-between">
-                  <p className="text-sm text-gray-500">
-                    Showing {userData.projects.length} projects
-                  </p>
-                  <Button variant="outline">View All Projects</Button>
-                </CardFooter>
+                {humanizedTexts.length > 0 && (
+                  <CardFooter className="flex justify-between">
+                    <p className="text-sm text-gray-500">
+                      Showing {humanizedTexts.length} project{humanizedTexts.length !== 1 ? 's' : ''}
+                    </p>
+                    <Button variant="outline">View All Projects</Button>
+                  </CardFooter>
+                )}
               </Card>
             </TabsContent>
 
@@ -255,8 +286,13 @@ const Dashboard = () => {
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <div className="flex flex-col md:flex-row md:justify-between md:items-center">
                           <div>
-                            <p className="font-medium">{userData.plan} Plan</p>
-                            <p className="text-sm text-gray-500">$19.00 / month</p>
+                            <p className="font-medium">
+                              {subscription?.plan_type.charAt(0).toUpperCase() + subscription?.plan_type.slice(1) || "Free"} Plan
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {subscription?.plan_type === 'standard' ? "$19.00 / month" :
+                               subscription?.plan_type === 'premium' ? "$49.00 / month" : "Free tier"}
+                            </p>
                           </div>
                           <div className="mt-4 md:mt-0">
                             <Link to="/pricing">
@@ -281,28 +317,38 @@ const Dashboard = () => {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {userData.paymentHistory.map((payment) => (
-                              <TableRow key={payment.id}>
-                                <TableCell className="font-medium">{payment.id}</TableCell>
-                                <TableCell>{payment.date}</TableCell>
-                                <TableCell>{payment.amount}</TableCell>
-                                <TableCell>
-                                  <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    {payment.status}
-                                  </div>
+                            {paymentHistory.length > 0 ? (
+                              paymentHistory.map((payment) => (
+                                <TableRow key={payment.id}>
+                                  <TableCell className="font-medium">{payment.id}</TableCell>
+                                  <TableCell>{payment.date}</TableCell>
+                                  <TableCell>{payment.amount}</TableCell>
+                                  <TableCell>
+                                    <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                      {payment.status}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>{payment.plan}</TableCell>
+                                </TableRow>
+                              ))
+                            ) : (
+                              <TableRow>
+                                <TableCell colSpan={5} className="text-center py-4 text-gray-500">
+                                  No payment history available.
                                 </TableCell>
-                                <TableCell>{payment.plan}</TableCell>
                               </TableRow>
-                            ))}
+                            )}
                           </TableBody>
                         </Table>
                       </div>
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter>
-                  <Button variant="outline" className="ml-auto">Download All Invoices</Button>
-                </CardFooter>
+                {paymentHistory.length > 0 && (
+                  <CardFooter>
+                    <Button variant="outline" className="ml-auto">Download All Invoices</Button>
+                  </CardFooter>
+                )}
               </Card>
             </TabsContent>
 
@@ -324,7 +370,7 @@ const Dashboard = () => {
                           <input
                             type="text"
                             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                            value={userData.name}
+                            value={profile?.full_name || ''}
                             readOnly
                           />
                         </div>
@@ -333,7 +379,7 @@ const Dashboard = () => {
                           <input
                             type="email"
                             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                            value={userData.email}
+                            value={user?.email || ''}
                             readOnly
                           />
                         </div>
