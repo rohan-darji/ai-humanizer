@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { CheckIcon, ArrowRightIcon } from "lucide-react";
@@ -13,6 +14,7 @@ const Index = () => {
   const [outputText, setOutputText] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeTab, setActiveTab] = useState("humanize");
+  const { toast } = useToast();
 
   const handleSubmit = async () => {
     if (!inputText.trim()) return;
@@ -69,7 +71,7 @@ The humanized text would have varied sentence structures, natural language patte
     <div className="flex flex-col min-h-screen">
       <Header />
       
-      <main className="flex-grow pt-24">
+      <main className="flex-grow pt-[72px]">
         {/* Hero Section */}
         <section className="bg-gradient-to-b from-humanizer-light-purple to-white py-16 md:py-24">
           <div className="container mx-auto px-4 sm:px-6">
@@ -201,6 +203,10 @@ The humanized text would have varied sentence structures, natural language patte
                               disabled={!outputText}
                               onClick={() => {
                                 navigator.clipboard.writeText(outputText);
+                                toast({
+                                  title: "Copied!",
+                                  description: "Text has been copied to clipboard",
+                                });
                               }}
                             >
                               Copy

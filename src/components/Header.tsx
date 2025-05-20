@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -27,17 +26,17 @@ const Header = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
-          <Link to="/" className="text-humanizer-dark font-medium hover:text-humanizer-purple transition-colors">
+          <Link to="/" onClick={() => window.scrollTo(0, 0)} className="text-humanizer-dark font-medium hover:text-humanizer-purple transition-colors">
             Home
           </Link>
-          <Link to="/pricing" className="text-humanizer-dark font-medium hover:text-humanizer-purple transition-colors">
+          <Link to="/pricing" onClick={() => window.scrollTo(0, 0)} className="text-humanizer-dark font-medium hover:text-humanizer-purple transition-colors">
             Pricing
           </Link>
-          <Link to="/contact" className="text-humanizer-dark font-medium hover:text-humanizer-purple transition-colors">
+          <Link to="/contact" onClick={() => window.scrollTo(0, 0)} className="text-humanizer-dark font-medium hover:text-humanizer-purple transition-colors">
             Contact
           </Link>
           {user && (
-            <Link to="/dashboard" className="text-humanizer-dark font-medium hover:text-humanizer-purple transition-colors">
+            <Link to="/dashboard" onClick={() => window.scrollTo(0, 0)} className="text-humanizer-dark font-medium hover:text-humanizer-purple transition-colors">
               Dashboard
             </Link>
           )}
@@ -65,21 +64,30 @@ const Header = () => {
             <Link 
               to="/" 
               className="text-humanizer-dark font-medium hover:text-humanizer-purple transition-colors py-2"
-              onClick={() => setIsMenuOpen(false)}
+              onClick={() => {
+                setIsMenuOpen(false);
+                window.scrollTo(0, 0);
+              }}
             >
               Home
             </Link>
             <Link 
               to="/pricing" 
               className="text-humanizer-dark font-medium hover:text-humanizer-purple transition-colors py-2"
-              onClick={() => setIsMenuOpen(false)}
+              onClick={() => {
+                setIsMenuOpen(false);
+                window.scrollTo(0, 0);
+              }}
             >
               Pricing
             </Link>
             <Link 
               to="/contact" 
               className="text-humanizer-dark font-medium hover:text-humanizer-purple transition-colors py-2"
-              onClick={() => setIsMenuOpen(false)}
+              onClick={() => {
+                setIsMenuOpen(false);
+                window.scrollTo(0, 0);
+              }}
             >
               Contact
             </Link>
@@ -87,7 +95,10 @@ const Header = () => {
               <Link 
                 to="/dashboard" 
                 className="text-humanizer-dark font-medium hover:text-humanizer-purple transition-colors py-2"
-                onClick={() => setIsMenuOpen(false)}
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  window.scrollTo(0, 0);
+                }}
               >
                 Dashboard
               </Link>

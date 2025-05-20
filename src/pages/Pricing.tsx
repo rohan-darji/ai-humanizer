@@ -214,35 +214,69 @@ const Pricing = () => {
 
   const handleUpdatePlan = async (planType: string) => {
     try {
-      // In a real app, you would integrate with a payment processor here
+      setProcessingPayment(false); // Close the payment dialog
       
-      // Update the subscription in the database
-      const { error } = await supabase
+      // Update or create the subscription in the database
+      const { data: subscriptionData, error: subscriptionError } = await supabase
         .from('subscriptions')
-        .update({ 
+        .upsert({ 
+          user_id: user!.id,
           plan_type: planType,
-          updated_at: new Date().toISOString() 
-        })
-        .eq('user_id', user!.id);
+          is_active: true,
+          updated_at: new Date().toISOString(),
+          start_date: new Date().toISOString(),
+          end_date: new Date(Date.now() + (billingCycle === 'yearly' ? 365 : 30) * 24 * 60 * 60 * 1000).toISOString()
+        },{ onConflict: 'user_id' })
+        .select()
+        .single();
       
-      if (error) throw error;
+      if (subscriptionError) throw subscriptionError;
       
       // Update credits based on plan
-      let totalCredits = 1000; // Default for free tier
+      let totalCredits = 0;
       
-      if (planType === 'standard') {
+      if (planType === 'free') {
+        totalCredits = 500;
+      } else if (planType === 'standard') {
         totalCredits = 5000;
       } else if (planType === 'premium') {
         totalCredits = 20000;
       }
       
-      const { error: creditsError } = await supabase
-        .from('credits')
-        .update({ 
-          total_credits: totalCredits,
-          updated_at: new Date().toISOString() 
-        })
-        .eq('user_id', user!.id);
+      const { data: existing, error: fetchError } = await supabase
+      .from('credits')
+      .select('*')
+      .eq('user_id', user!.id)
+      .maybeSingle();
+    
+      if (fetchError) throw fetchError;
+      
+      let creditsError;
+      
+      if (existing) {
+        // Update
+        const { error } = await supabase
+          .from('credits')
+          .update({
+            total_credits: totalCredits,
+            used_credits: 0,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user!.id);
+        creditsError = error;
+      } else {
+        // Insert
+        const { error } = await supabase
+          .from('credits')
+          .insert({
+            user_id: user!.id,
+            total_credits: totalCredits,
+            used_credits: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+        creditsError = error;
+      }
       
       if (creditsError) throw creditsError;
       
@@ -251,7 +285,9 @@ const Pricing = () => {
       // Redirect to dashboard after successful upgrade
       setTimeout(() => navigate('/dashboard'), 1000);
     } catch (error: any) {
+      console.error('Error updating subscription:', error);
       toast.error(`Error updating subscription: ${error.message}`);
+      setProcessingPayment(false);
     }
   };
 
