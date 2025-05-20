@@ -1,19 +1,18 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const Login = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-  const navigate = useNavigate();
+  const { signIn, signUp, loading } = useAuth();
   
   // Login form state
   const [loginEmail, setLoginEmail] = useState("");
@@ -25,73 +24,42 @@ const Login = () => {
   const [registerPassword, setRegisterPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleLogin = async (e) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
 
-    // Mock login process
-    setTimeout(() => {
-      // Check if the fields are filled
-      if (!loginEmail || !loginPassword) {
-        toast({
-          title: "Error",
-          description: "Please fill in all fields",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
+    // Check if the fields are filled
+    if (!loginEmail || !loginPassword) {
+      toast.error("Please fill in all fields");
+      return;
+    }
 
-      // Mock successful login
-      toast({
-        title: "Success",
-        description: "You have successfully logged in!",
-      });
-      
-      // Redirect to dashboard
-      navigate("/dashboard");
-      setIsLoading(false);
-    }, 1500);
+    try {
+      await signIn(loginEmail, loginPassword);
+    } catch (error) {
+      // Error is already handled in the auth context
+    }
   };
 
-  const handleRegister = async (e) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
 
-    // Mock register process
-    setTimeout(() => {
-      // Check if the fields are filled
-      if (!registerName || !registerEmail || !registerPassword || !confirmPassword) {
-        toast({
-          title: "Error",
-          description: "Please fill in all fields",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
+    // Check if the fields are filled
+    if (!registerName || !registerEmail || !registerPassword || !confirmPassword) {
+      toast.error("Please fill in all fields");
+      return;
+    }
 
-      // Check if passwords match
-      if (registerPassword !== confirmPassword) {
-        toast({
-          title: "Error",
-          description: "Passwords do not match",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
+    // Check if passwords match
+    if (registerPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
 
-      // Mock successful registration
-      toast({
-        title: "Success",
-        description: "You have successfully registered!",
-      });
-      
-      // Redirect to dashboard
-      navigate("/dashboard");
-      setIsLoading(false);
-    }, 1500);
+    try {
+      await signUp(registerEmail, registerPassword, registerName);
+    } catch (error) {
+      // Error is already handled in the auth context
+    }
   };
 
   return (
@@ -151,9 +119,9 @@ const Login = () => {
                     <Button 
                       type="submit" 
                       className="w-full bg-gradient-purple-blue"
-                      disabled={isLoading}
+                      disabled={loading}
                     >
-                      {isLoading ? "Logging in..." : "Login"}
+                      {loading ? "Logging in..." : "Login"}
                     </Button>
                   </CardFooter>
                 </form>
@@ -218,9 +186,9 @@ const Login = () => {
                     <Button 
                       type="submit" 
                       className="w-full bg-gradient-purple-blue"
-                      disabled={isLoading}
+                      disabled={loading}
                     >
-                      {isLoading ? "Creating account..." : "Create Account"}
+                      {loading ? "Creating account..." : "Create Account"}
                     </Button>
                   </CardFooter>
                 </form>

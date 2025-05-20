@@ -3,17 +3,16 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { X, Menu } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
-  // Mock login state - in a real app this would come from auth context
-  const toggleAuthState = () => {
-    if (isLoggedIn) {
-      setIsLoggedIn(false);
-      navigate("/");
+  const handleAuthAction = () => {
+    if (user) {
+      signOut();
     } else {
       navigate("/login");
     }
@@ -37,17 +36,17 @@ const Header = () => {
           <Link to="/contact" className="text-humanizer-dark font-medium hover:text-humanizer-purple transition-colors">
             Contact
           </Link>
-          {isLoggedIn && (
+          {user && (
             <Link to="/dashboard" className="text-humanizer-dark font-medium hover:text-humanizer-purple transition-colors">
               Dashboard
             </Link>
           )}
           <Button
-            onClick={toggleAuthState}
-            variant={isLoggedIn ? "outline" : "default"}
-            className={isLoggedIn ? "" : "bg-gradient-purple-blue"}
+            onClick={handleAuthAction}
+            variant={user ? "outline" : "default"}
+            className={user ? "" : "bg-gradient-purple-blue"}
           >
-            {isLoggedIn ? "Logout" : "Login"}
+            {user ? "Logout" : "Login"}
           </Button>
         </nav>
 
@@ -84,7 +83,7 @@ const Header = () => {
             >
               Contact
             </Link>
-            {isLoggedIn && (
+            {user && (
               <Link 
                 to="/dashboard" 
                 className="text-humanizer-dark font-medium hover:text-humanizer-purple transition-colors py-2"
@@ -95,13 +94,13 @@ const Header = () => {
             )}
             <Button
               onClick={() => {
-                toggleAuthState();
+                handleAuthAction();
                 setIsMenuOpen(false);
               }}
-              variant={isLoggedIn ? "outline" : "default"}
-              className={`w-full ${isLoggedIn ? "" : "bg-gradient-purple-blue"}`}
+              variant={user ? "outline" : "default"}
+              className={`w-full ${user ? "" : "bg-gradient-purple-blue"}`}
             >
-              {isLoggedIn ? "Logout" : "Login"}
+              {user ? "Logout" : "Login"}
             </Button>
           </div>
         </div>
