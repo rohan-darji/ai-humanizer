@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -290,7 +289,7 @@ The humanized text would have varied sentence structures, natural language patte
                 Start using our AI Humanizer tool today and create undetectable, high-quality content.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <Link to="/pricing">
+                <Link to="/pricing" onClick={() => window.scrollTo(0, 0)}>
                   <Button className="bg-white text-humanizer-purple hover:bg-gray-100 py-6 px-8 text-lg">
                     Get Started <ArrowRightIcon className="ml-2 h-5 w-5" />
                   </Button>

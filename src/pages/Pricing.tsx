@@ -253,13 +253,13 @@ const Pricing = () => {
                 Sign up now and get your first 500 credits for free, no credit card required.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <Link to="/login">
+                <Link to="/login" onClick={() => window.scrollTo(0, 0)}>
                   <Button className="bg-white text-humanizer-purple hover:bg-gray-100 py-6 px-8 text-lg">
                     Sign Up Free
                   </Button>
                 </Link>
-                <Link to="/contact">
-                  <Button variant="outline" className="border-white text-white hover:bg-white/20 py-6 px-8 text-lg">
+                <Link to="/contact" onClick={() => window.scrollTo(0, 0)}>
+                  <Button className="bg-white text-humanizer-purple hover:bg-gray-100 py-6 px-8 text-lg">
                     Contact Sales
                   </Button>
                 </Link>
