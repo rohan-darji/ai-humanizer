@@ -3,17 +3,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-interface HumanizedText {
-  id: string;
-  user_id: string;
-  original_text: string;
-  humanized_text: string;
-  credits_used: number;
-  title: string;
-  created_at: string;
-  updated_at: string;
-}
+import { HumanizedText } from "@/types/user";
 
 export const useHumanizedTexts = () => {
   const { user } = useAuth();
@@ -84,7 +74,7 @@ export const useHumanizedTexts = () => {
 
       if (error) throw error;
       
-      setTexts(prevTexts => [data, ...prevTexts]);
+      setTexts(prevTexts => [data as HumanizedText, ...prevTexts]);
       toast.success("Text humanized and saved successfully!");
       return data;
     } catch (error: any) {
