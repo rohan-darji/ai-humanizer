@@ -13,6 +13,17 @@ AI Humanizer is a powerful tool that helps transform AI-generated text into more
 - Node.js (v16 or higher)
 - npm (v7 or higher)
 
+### Environment Variables
+
+Create a `.env` file in the root directory with the following variables:
+
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+You can find these values in your Supabase project settings under Project Settings > API.
+
 ### Installation
 
 Follow these steps to set up the project locally:
@@ -76,6 +87,17 @@ This project is built with:
 - Credit system
 - Responsive design
 - Modern UI/UX
+
+## Deployment
+
+### Vercel Deployment
+
+1. Push your code to a Git repository (GitHub, GitLab, or Bitbucket)
+2. Import your project in Vercel
+3. Add the following environment variables in your Vercel project settings:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+4. Deploy your project
 
 ## Contributing
 
