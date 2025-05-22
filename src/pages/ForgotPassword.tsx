@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { siteConfig } from "@/config/site";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -27,7 +27,7 @@ const ForgotPassword = () => {
       setLoading(true);
       
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${siteConfig.url}/reset-password`,
       });
       
       if (error) throw error;
@@ -88,7 +88,7 @@ const ForgotPassword = () => {
             ) : (
               <CardFooter className="flex flex-col space-y-4">
                 <Link to="/login">
-                  <Button className="w-full">Back to login</Button>
+                  <Button className="text-sm text-humanizer-purple hover:underline text-center w-full">Back to login</Button>
                 </Link>
               </CardFooter>
             )}

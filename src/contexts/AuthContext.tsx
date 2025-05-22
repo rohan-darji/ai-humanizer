@@ -1,9 +1,9 @@
-
 import { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { siteConfig } from "@/config/site";
 
 interface AuthContextType {
   user: User | null;
@@ -57,13 +57,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           data: {
             full_name: fullName,
           },
+          emailRedirectTo: `${siteConfig.url}/dashboard`,
         },
       });
       
       if (error) throw error;
       
       navigate("/dashboard");
-      toast.success("Account created successfully!");
+      toast.success("Account created successfully! Please check your email for verification.");
     } catch (error: any) {
       toast.error(error.message || "Error during sign up");
       throw error;
