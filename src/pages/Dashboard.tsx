@@ -17,7 +17,6 @@ import { useHumanizedTexts } from "@/hooks/useHumanizedTexts";
 import ProjectsList from "@/components/ProjectsList";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { DeleteAccountDialog } from "@/components/DeleteAccountDialog";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -30,7 +29,6 @@ const Dashboard = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [isDeleteAccountDialogOpen, setIsDeleteAccountDialogOpen] = useState(false);
 
   // Calculate credits percentage
   const creditsPercentage = credits ? (credits.used_credits / credits.total_credits) * 100 : 0;
@@ -361,12 +359,7 @@ const Dashboard = () => {
 
                     <div>
                       <h3 className="text-lg font-medium mb-4">Account Actions</h3>
-                      <Button 
-                        variant="destructive" 
-                        onClick={() => setIsDeleteAccountDialogOpen(true)}
-                      >
-                        Delete Account
-                      </Button>
+                      <Button variant="destructive">Delete Account</Button>
                     </div>
                   </div>
                 </CardContent>
@@ -378,7 +371,6 @@ const Dashboard = () => {
       
       <Footer />
 
-      {/* Password Change Dialog */}
       <Dialog open={isChangePasswordOpen} onOpenChange={setIsChangePasswordOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -434,12 +426,6 @@ const Dashboard = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Delete Account Dialog */}
-      <DeleteAccountDialog 
-        isOpen={isDeleteAccountDialogOpen}
-        onClose={() => setIsDeleteAccountDialogOpen(false)}
-      />
     </div>
   );
 };
