@@ -109,4 +109,4 @@ This project is built with:
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/rohan-darji/ai-humanizer/blob/main/LICENSE) file for details.
