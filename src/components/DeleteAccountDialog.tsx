@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -19,8 +18,8 @@ export function DeleteAccountDialog({ isOpen, onClose }: DeleteAccountDialogProp
     try {
       setIsDeleting(true);
       
-      // Delete user data from Supabase
-      const { error: deleteError } = await supabase.rpc('delete_user_data');
+      // Delete user data from Supabase - using a type assertion to handle the custom RPC
+      const { error: deleteError } = await supabase.rpc('delete_user_data' as any);
       
       if (deleteError) throw deleteError;
 
