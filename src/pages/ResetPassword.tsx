@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -54,7 +53,7 @@ const ResetPassword = () => {
       if (error) throw error;
       
       toast.success("Password updated successfully!");
-      setTimeout(() => navigate("/login"), 2000);
+      setTimeout(() => navigate("/dashboard"), 2000);
     } catch (error: any) {
       toast.error(error.message || "Error updating password");
     } finally {
