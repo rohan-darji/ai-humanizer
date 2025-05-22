@@ -57,14 +57,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           data: {
             full_name: fullName,
           },
-          emailRedirectTo: `${siteConfig.url}/dashboard`,
+          emailRedirectTo: `${siteConfig.url}/auth/callback`,
         },
       });
       
       if (error) throw error;
       
-      navigate("/dashboard");
       toast.success("Account created successfully! Please check your email for verification.");
+      navigate("/login");
     } catch (error: any) {
       toast.error(error.message || "Error during sign up");
       throw error;
