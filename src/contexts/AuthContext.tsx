@@ -30,8 +30,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (event === 'SIGNED_IN') {
           toast.success('Successfully signed in!');
+          navigate('/');
         } else if (event === 'SIGNED_OUT') {
           toast.success('Successfully signed out!');
+          navigate('/');
         }
       }
     );
@@ -44,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
@@ -56,14 +58,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           data: {
             full_name: fullName,
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
       
       if (error) throw error;
       
-      toast.success("Account created successfully! Please check your email for verification.");
-      navigate("/login");
+      toast.success("Account created successfully!");
+      navigate("/");
     } catch (error: any) {
       toast.error(error.message || "Error during sign up");
       throw error;
