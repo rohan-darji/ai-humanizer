@@ -1,73 +1,90 @@
-# Welcome to your Lovable project
+# AI Humanizer
 
-## Project info
+A modern web application for humanizing AI-generated text, built with React and TypeScript.
 
-**URL**: https://lovable.dev/projects/dc3c4499-c5a7-43d8-9edf-49602ab93617
+## Project Overview
 
-## How can I edit this code?
+AI Humanizer is a powerful tool that helps transform AI-generated text into more natural, human-like content. It provides features for text transformation, project management, and user account management.
 
-There are several ways of editing your application.
+## Getting Started
 
-**Use Lovable**
+### Prerequisites
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/dc3c4499-c5a7-43d8-9edf-49602ab93617) and start prompting.
+- Node.js (v16 or higher)
+- npm (v7 or higher)
 
-Changes made via Lovable will be committed automatically to this repo.
+### Installation
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+Follow these steps to set up the project locally:
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Step 1: Clone the repository
+git clone <REPOSITORY_URL>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Step 2: Navigate to the project directory
+cd ai-humanizer
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Step 3: Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at `http://localhost:5173` by default.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Development
 
-**Use GitHub Codespaces**
+### Available Scripts
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- `npm run dev` - Start the development server
+- `npm run build` - Build the project for production
+- `npm run preview` - Preview the production build locally
+- `npm run lint` - Run ESLint to check code quality
+- `npm run type-check` - Run TypeScript type checking
 
-## What technologies are used for this project?
+### Project Structure
+
+```
+src/
+├── components/     # Reusable UI components
+├── contexts/       # React context providers
+├── hooks/         # Custom React hooks
+├── integrations/  # Third-party service integrations
+├── lib/           # Utility functions and helpers
+├── pages/         # Page components
+└── types/         # TypeScript type definitions
+```
+
+## Technologies Used
 
 This project is built with:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- [Vite](https://vitejs.dev/) - Next Generation Frontend Tooling
+- [React](https://reactjs.org/) - A JavaScript library for building user interfaces
+- [TypeScript](https://www.typescriptlang.org/) - JavaScript with syntax for types
+- [Tailwind CSS](https://tailwindcss.com/) - A utility-first CSS framework
+- [shadcn/ui](https://ui.shadcn.com/) - Re-usable components built with Radix UI and Tailwind CSS
+- [Supabase](https://supabase.com/) - Open source Firebase alternative
 
-## How can I deploy this project?
+## Features
 
-Simply open [Lovable](https://lovable.dev/projects/dc3c4499-c5a7-43d8-9edf-49602ab93617) and click on Share -> Publish.
+- User authentication and authorization
+- Project management
+- Text humanization
+- Subscription management
+- Credit system
+- Responsive design
+- Modern UI/UX
 
-## Can I connect a custom domain to my Lovable project?
+## Contributing
 
-Yes, you can!
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## License
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+This project is licensed under the MIT License - see the LICENSE file for details.
