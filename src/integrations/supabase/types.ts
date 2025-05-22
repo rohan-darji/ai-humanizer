@@ -131,6 +131,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_user_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       use_credits: {
         Args: { credits_amount: number }
         Returns: undefined
