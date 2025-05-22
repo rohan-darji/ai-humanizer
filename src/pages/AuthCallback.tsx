@@ -37,15 +37,12 @@ const AuthCallback = () => {
         if (!session) {
           throw new Error("No session found");
         }
-
-        // Get the next route from the URL parameters, default to dashboard
-        const nextRoute = searchParams.get("next") || "/dashboard";
         
         // Show success message
         toast.success("Successfully authenticated!");
         
-        // Navigate to the next route
-        navigate(nextRoute);
+        // Always redirect to dashboard after successful authentication
+        navigate("/dashboard");
       } catch (error: any) {
         console.error("Auth callback error:", error);
         toast.error("Error during authentication");
@@ -54,7 +51,7 @@ const AuthCallback = () => {
     };
 
     handleAuthCallback();
-  }, [navigate, searchParams]);
+  }, [navigate]);
 
   return (
     <div className="flex items-center justify-center min-h-screen">
