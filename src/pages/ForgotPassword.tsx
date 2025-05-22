@@ -8,7 +8,6 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { siteConfig } from "@/config/site";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -27,7 +26,7 @@ const ForgotPassword = () => {
       setLoading(true);
       
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${siteConfig.url}/auth/callback?next=/reset-password`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
       });
       
       if (error) throw error;
