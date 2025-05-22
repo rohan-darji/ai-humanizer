@@ -1,6 +1,6 @@
 export const siteConfig = {
   name: "AI Humanizer",
-  url: "https://ai-humanizer-gold.vercel.app",
+  url: import.meta.env.VITE_SITE_URL || window.location.origin,
   ogImage: "https://ai-humanizer-gold.vercel.app/og.jpg",
   description: "Transform AI-generated text into natural, human-like content.",
   links: {

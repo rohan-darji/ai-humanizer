@@ -88,7 +88,7 @@ const ForgotPassword = () => {
             ) : (
               <CardFooter className="flex flex-col space-y-4">
                 <Link to="/login">
-                  <Button className="text-sm text-humanizer-purple hover:underline text-center w-full">Back to login</Button>
+                  <Button className="w-full bg-gradient-purple-blue">Back to login</Button>
                 </Link>
               </CardFooter>
             )}
